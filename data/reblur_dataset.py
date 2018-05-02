@@ -8,8 +8,9 @@ import os
 class reblurDataSet(BaseDataset):
     """Reblur dataset."""
 
-    def initialize(self, dataroot):
-        self.root_dir = dataroot
+    def initialize(self, opt):
+        self.opt = opt
+        self.root_dir = opt.dataroot
         self.folders = sorted(os.listdir(self.root_dir))
         foldersLen = []
         foldersStart = []
@@ -20,9 +21,10 @@ class reblurDataSet(BaseDataset):
         self.foldersLen = foldersLen
         self.foldersStart = foldersStart
         transform_list = [transforms.ToTensor(),
-                          transforms.Normalize(mean=[0,0,0], std=[255,255,255]),
-                          transforms.Normalize(mean=[0.411,0.432,0.45], std=[1,1,1])]
+                          transforms.Normalize((0.5, 0.5, 0.5),
+                                               (0.5, 0.5, 0.5))]
         self.transform = transforms.Compose(transform_list)
+        
 
     def __len__(self):
         return sum(self.foldersLen) - 2 * len(self.foldersLen)
@@ -30,7 +32,6 @@ class reblurDataSet(BaseDataset):
     def __getitem__(self, offset):
         images = []
         sample = {}
-        fineSize = 256
         cnt = 0
         offset = offset + 1
         while offset > 0:
@@ -39,26 +40,28 @@ class reblurDataSet(BaseDataset):
         cnt = cnt - 1
         offset = offset + self.foldersLen[cnt] - 3
         for index in range(3):
-            img_name = os.path.join(self.root_dir, self.folders[cnt], "sharp"
+            img_name = os.path.join(self.root_dir, self.folders[cnt], "blur"
                                 ,str(self.foldersStart[cnt]+offset+index).zfill(6)+".png")
             sample['image'+str(index)] = Image.open(img_name).convert('RGB')
-        label_name = os.path.join(os.path.join(self.root_dir, self.folders[cnt], "blur"
+			sample['image'+str(index)] = sample['image'+str(index)].resize((self.opt.loadSizeX, self.opt.loadSizeY), Image.BICUBIC)
+        label_name = os.path.join(os.path.join(self.root_dir, self.folders[cnt], "sharp"
                                 ,str(self.foldersStart[cnt]+offset+1).zfill(6)+".png"))
         sample['label'] = Image.open(label_name).convert('RGB')
+		sample['label'] = sample['label'].resize((self.opt.loadSizeX, self.opt.loadSizeY), Image.BICUBIC)
         sample = {key:self.transform(sample[key]) for key in sample}
         
         w = sample['label'].size(2)
         h = sample['label'].size(1)
-        w_offset = random.randint(0, max(0, w - fineSize - 1))
-        h_offset = random.randint(0, max(0, h - fineSize - 1))
+        w_offset = random.randint(0, max(0, w - self.opt.fineSize - 1))
+        h_offset = random.randint(0, max(0, h - self.opt.fineSize - 1))
 
-        sample = {key:sample[key][:, h_offset:h_offset + fineSize,
-               w_offset:w_offset + fineSize] for key in sample}
+        sample = {key:sample[key][:, h_offset:h_offset + self.opt.fineSize,
+               w_offset:w_offset + self.opt.fineSize] for key in sample}
 
-#         if (not self.opt.no_flip) and random.random() < 0.5:
-#             idx = [i for i in range(sample['label'].size(2) - 1, -1, -1)]
-#             idx = torch.LongTensor(idx)
-#             sample = {key:sample[key].index_select(2, idx) for key in sample}
+        if (not self.opt.no_flip) and random.random() < 0.5:
+            idx = [i for i in range(sample['label'].size(2) - 1, -1, -1)]
+            idx = torch.LongTensor(idx)
+            sample = {key:sample[key].index_select(2, idx) for key in sample}
 
         return sample
     
