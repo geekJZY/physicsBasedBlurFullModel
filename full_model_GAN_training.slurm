@@ -6,7 +6,7 @@
 
 ##NECESSARY JOB SPECIFICATIONS
 #SBATCH --job-name=test     #Set the job name to "JobExample4"
-#SBATCH --time=30:00:00                #Set the wall clock limit to 1hr and 30min
+#SBATCH --time=00:10:00                #Set the wall clock limit to 1hr and 30min
 #SBATCH --ntasks=4                  #Request 1 task
 #SBATCH --mem=40000M                  #Request 2560MB (2.5GB) per node
 #SBATCH --output=fullModelOutputGAN.%j      #Send stdout/err to "Example4Out.[jobID]"

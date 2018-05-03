@@ -43,11 +43,11 @@ class reblurDataSet(BaseDataset):
             img_name = os.path.join(self.root_dir, self.folders[cnt], "blur"
                                 ,str(self.foldersStart[cnt]+offset+index).zfill(6)+".png")
             sample['image'+str(index)] = Image.open(img_name).convert('RGB')
-			sample['image'+str(index)] = sample['image'+str(index)].resize((self.opt.loadSizeX, self.opt.loadSizeY), Image.BICUBIC)
+            sample['image'+str(index)] = sample['image'+str(index)].resize((self.opt.loadSizeX, self.opt.loadSizeY), Image.BICUBIC)
         label_name = os.path.join(os.path.join(self.root_dir, self.folders[cnt], "sharp"
                                 ,str(self.foldersStart[cnt]+offset+1).zfill(6)+".png"))
         sample['label'] = Image.open(label_name).convert('RGB')
-		sample['label'] = sample['label'].resize((self.opt.loadSizeX, self.opt.loadSizeY), Image.BICUBIC)
+        sample['label'] = sample['label'].resize((self.opt.loadSizeX, self.opt.loadSizeY), Image.BICUBIC)
         sample = {key:self.transform(sample[key]) for key in sample}
         
         w = sample['label'].size(2)
