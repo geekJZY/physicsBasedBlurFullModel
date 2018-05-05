@@ -88,7 +88,7 @@ class DiscLoss():
 		self.criterionGAN = GANLoss(use_l1=False, tensor=tensor)
 		self.fake_AB_pool = ImagePool(opt.pool_size)
 		
-	def get_g_loss(self,net, realA, fakeB):
+	def get_g_loss(self,net, fakeB):
 		# First, G(A) should fake the discriminator
 		pred_fake = net.forward(fakeB)
 		return self.criterionGAN(pred_fake, 1)

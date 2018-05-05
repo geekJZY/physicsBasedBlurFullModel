@@ -15,7 +15,7 @@ import torch.backends.cudnn as cudnn
 
 # In[2]:
 
-sys.argv += ['--dataroot', '/scratch/user/jiangziyu/data/GOPRO_Large/train/',
+sys.argv += ['--dataroot', '/scratch/user/jiangziyu/test/',
              '--learn_residual', '--resize_or_crop', 'scale_width',
              '--fineSize', '256','--batchSize','1','--name','fullModelWithGANLargeLoss','--model','pix2pix']
 
@@ -132,10 +132,10 @@ for param in phsics_blur.parameters():
 # In[8]:
 
 
-num_epoch=100
+num_epoch=20
 num_workers=2
 learning_rate=0.00005
-lrd = 0.000001
+lrd = 0.000005
 transforms=None       #make data augmentation. For now using only the transforms defined above
 
 # ### Cycle consistency loss
@@ -188,7 +188,6 @@ for epoch in range(num_epoch):
         images0 = Variable(data['image0']).cuda()
         images1 = Variable(data['image1']).cuda()
         images2 = Variable(data['image2']).cuda()
-        labels = Variable(data['label']).cuda()
 
 
         optimizer.zero_grad()
@@ -199,7 +198,7 @@ for epoch in range(num_epoch):
         deblur_out2 = netG_frozen_deblur.forward(images2)
         blur_model_outputs_f = phsics_blur.forward(deblur_out0, deblur_out1, deblur_out2)
         loss_unsupervise = cycle_consistency_criterion(blur_model_outputs_f, images1)
-        loss_dis = disLoss.get_g_loss(netD_frozen, labels, deblur_out1)
+        loss_dis = disLoss.get_g_loss(netD_frozen, deblur_out1)
         loss = loss_unsupervise*200 + loss_dis
         #backward loss part
         
@@ -215,7 +214,7 @@ for epoch in range(num_epoch):
     if epoch > 0:    ##save deblur once every epoch
         save_network(netG_deblur, 'deblur_G', opt.which_epoch)
         save_network(netG_deblur, 'deblur_G', epoch)
-    if epoch>50:
+    if epoch>10:
         lr = learning_rate - lrd
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr        
