@@ -1,0 +1,2 @@
+1. fullModelWithGANLoss experiment is with outputFullModelMultiGAN.txt and the GAN loss is from DiscLoss.get_g_loss*0.0025
+2. 

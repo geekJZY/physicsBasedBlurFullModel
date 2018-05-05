@@ -197,7 +197,7 @@ for epoch in range(num_epoch):
         blur_model_outputs_f = netG_frozen_blur.forward(deblur_out0, deblur_out1, deblur_out2)
         loss_unsupervise = cycle_consistency_criterion(blur_model_outputs_f, images1)
         loss_L1 = contentLoss.get_loss(deblur_out1, labels)
-        loss = loss_unsupervise + loss_L1*0.1
+        loss = loss_unsupervise*3 + loss_L1*0.1
         #backward loss part
         
         
@@ -205,8 +205,8 @@ for epoch in range(num_epoch):
         optimizer.step()
         
         if (i + 1) % 20 == 0:
-            print("(epoch %d itr %d), unsupervised loss is %f, L1 loss is %f, loss is %f"% (epoch, i+1, loss_unsupervise.data[0], loss_L1.data[0], loss.data[0]))
-            print("(epoch %d itr %d), unsupervised loss is %f, L1 loss is %f, loss is %f"% (epoch, i+1, loss_unsupervise.data[0], loss_L1.data[0], loss.data[0]), file=open("outputFullModelMultiSupervised.txt", "a"))
+            print("(epoch %d itr %d), unsupervised loss is %f, GAN loss is %f, loss is %f"% (epoch, i+1, loss_unsupervise.data[0], loss_L1.data[0], loss.data[0]))
+            print("(epoch %d itr %d), unsupervised loss is %f, GAN loss is %f, loss is %f"% (epoch, i+1, loss_unsupervise.data[0], loss_L1.data[0], loss.data[0]), file=open("outputFullModelMultiSupervised.txt", "a"))
          
         
     if epoch%5 ==0:    ##save deblur once every 10 epochs

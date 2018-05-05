@@ -1,0 +1,19 @@
+##NECESSARY JOB SPECIFICATIONS
+#BSUB -J Train         #Set the job name to "ExampleJob4"
+#BSUB -W 40:00                #Set the wall clock limit to 2hr
+#BSUB -n 1                   #Request 1 core
+#BSUB -R "span[ptile=1]"     #Request 1 core per node.
+#BSUB -R "rusage[mem=5120]"  #Request 2560MB per process (CPU) for the job
+#BSUB -M 5120                #Set the per process enforceable memory limit to 2560MB.
+#BSUB -o TrainOut.%J      #Send stdout and stderr to "Example4Out.[jobID]"
+#BSUB -R "select[gpu]"       #Request a node with a GPU
+
+##OPTIONAL JOB SPECIFICATIONS
+#BSUB -u jiangziyu@tamu.edu       #Send all emails to email_address
+#BSUB -B -N                  #Send email on job begin (-B) and end (-N)
+
+
+module load Anaconda/3-5.0.0.1 
+source activate ML
+python fullModelGAN.py
+echo job done!

@@ -14,14 +14,14 @@ from torch.autograd import Variable
 
 class physicsReblurNet(torch.nn.Module):
     
-    def __init__(self):
+    def __init__(self, opt):
         super(physicsReblurNet,self).__init__()
         
         # data range transform
         self.rectifyKernel = Variable(torch.ones(3,1,1,1), requires_grad=False).cuda()/2
         self.rectifyBias = Variable(torch.FloatTensor([0.089,0.068,0.05]), requires_grad=False).cuda()
-        self.transbackKernel = Variable(torch.ones(3,1,1,1), requires_grad=False).cuda()*2
-        self.transbackBias = Variable(torch.FloatTensor([-0.089,-0.068,-0.05]), requires_grad=False).cuda()*2
+#         self.transbackKernel = Variable(torch.ones(3,1,1,1), requires_grad=False).cuda()*2
+#         self.transbackBias = Variable(torch.FloatTensor([-0.089,-0.068,-0.05]), requires_grad=False).cuda()*2
         
         # optical flow axis direction flip
         self.flipKernel = Variable(torch.ones(2,1,1,1), requires_grad=False).cuda()
@@ -33,37 +33,37 @@ class physicsReblurNet(torch.nn.Module):
         # Load Kernel Calculation Module
         self.KernelModel = flowToKernel()
         # Load blurWithKernel Module
-        self.BlurModel = reblurWithKernel()
+        self.BlurModel = reblurWithKernel(opt)
         
     
     
     def forward(self, image0, image1, image2):
         # adjust input data range
-        image0 = F.conv2d(image0,self.rectifyKernel,self.rectifyBias,groups=3)
-        image1 = F.conv2d(image1,self.rectifyKernel,self.rectifyBias,groups=3)
-        image2 = F.conv2d(image2,self.rectifyKernel,self.rectifyBias,groups=3)
+        image0_prc = F.conv2d(image0,self.rectifyKernel,self.rectifyBias,groups=3)
+        image1_prc = F.conv2d(image1,self.rectifyKernel,self.rectifyBias,groups=3)
+        image2_prc = F.conv2d(image2,self.rectifyKernel,self.rectifyBias,groups=3)
         # optical flow
 #         print(image0.size())
 #         print(image1.size())
 #         print(image2.size())
 #         print("three images")
-        input_var_1 = torch.cat([image0, image1],1)
-        input_var_2 = torch.cat([image2, image1],1)
+        input_var_1 = torch.cat([image0_prc, image1_prc],1)
+        input_var_2 = torch.cat([image2_prc, image1_prc],1)
 #         print(input_var_2.size())
         output_1 = self.flowModel(input_var_1)
         output_2 = self.flowModel(input_var_2)
 #         print(output_1.size())
         # flip axis
-        output_1 = F.conv2d(output_1, self.flipKernel, groups = 2)
-        output_2 = F.conv2d(output_2, self.flipKernel, groups = 2)
+        output_1_flip = F.conv2d(output_1, self.flipKernel, groups = 2)
+        output_2_flip = F.conv2d(output_2, self.flipKernel, groups = 2)
         # kernel estiamte
-        output_1 = torch.transpose(output_1, 1, 2)
-        output_1 = torch.transpose(output_1, 2, 3)
-        output_2 = torch.transpose(output_2, 1, 2)
-        output_2 = torch.transpose(output_2, 2, 3)
-        ImageKernels = self.KernelModel.forward((20/16) * output_1, (20/16) * output_2)
+        output_1_1 = torch.transpose(output_1_flip, 1, 2)
+        output_1_2 = torch.transpose(output_1_1, 2, 3)
+        output_2_1 = torch.transpose(output_2_flip, 1, 2)
+        output_2_2 = torch.transpose(output_2_1, 2, 3)
+        ImageKernels = self.KernelModel.forward((20/16) * output_1_2, (20/16) * output_2_2)
         # transform back and blur with kernels
-        image1 = F.conv2d(image1,self.transbackKernel,self.transbackBias,groups=3)
+#         image1_trans = F.conv2d(image1,self.transbackKernel,self.transbackBias,groups=3)
         blurImg = self.BlurModel.forward(image1, ImageKernels) 
         return blurImg
 
