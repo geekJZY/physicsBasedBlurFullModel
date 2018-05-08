@@ -188,6 +188,7 @@ for epoch in range(num_epoch):
         images0 = Variable(data['image0']).cuda()
         images1 = Variable(data['image1']).cuda()
         images2 = Variable(data['image2']).cuda()
+        label = Variable(data['label']).cuda()
 
 
         optimizer.zero_grad()
@@ -198,7 +199,7 @@ for epoch in range(num_epoch):
         deblur_out2 = netG_frozen_deblur.forward(images2)
         blur_model_outputs_f = phsics_blur.forward(deblur_out0, deblur_out1, deblur_out2)
         loss_unsupervise = cycle_consistency_criterion(blur_model_outputs_f, images1)
-        loss_dis = disLoss.get_g_loss(netD_frozen, deblur_out1)
+        loss_dis = disLoss.get_loss(netD_frozen, images1, deblur_out1, label)
         loss = loss_unsupervise*200 + loss_dis
         #backward loss part
         

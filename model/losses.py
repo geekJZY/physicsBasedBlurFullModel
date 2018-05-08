@@ -130,7 +130,7 @@ class DiscLossWGANGP(DiscLossLS):
 		DiscLossLS.initialize(self, opt, tensor)
 		self.LAMBDA = 10
 		
-	def get_g_loss(self, net, realA, fakeB):
+	def get_g_loss(self, net, fakeB):
 		# First, G(A) should fake the discriminator
 		self.D_fake = net.forward(fakeB)
 		return -self.D_fake.mean()

@@ -1,0 +1,2 @@
+(epoch 0 itr 10), unsupervised loss is 0.040473, L1 loss is 5.263407, loss is 0.053632
+(epoch 0 itr 10), unsupervised loss is 0.023960, L1 loss is 5.605294, loss is 10.397288
